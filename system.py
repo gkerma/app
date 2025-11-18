@@ -1,6 +1,8 @@
 import streamlit as st
 import random
 from datetime import datetime
+from collections import Counter
+import pandas as pd
 
 st.set_page_config(page_title="Cyber-Opéra — Générative", layout="centered")
 
@@ -318,8 +320,8 @@ st.sidebar.caption("Chaque tirage est une scène. Chaque cycle est une saison de
 
 # ---------- CONTENU PRINCIPAL : TABS ----------
 
-tab1, tab2, tab3, tab4 = st.tabs(
-    ["🌓 Tirage quotidien", "🎭 Scène opératique", "📚 Historique Space Opera", "🗓️ Cycle mensuel"]
+tab1, tab2, tab3, tab4, tab5 = st.tabs(
+    ["🌓 Tirage quotidien", "🎭 Scène opératique", "📚 Historique", "🗓️ Cycle mensuel", "📊 Stats"]
 )
 
 # --- Onglet 1 : Tirage quotidien ---
@@ -616,6 +618,65 @@ with tab4:
             file_name="cycle-mensuel-cyber-opera.md",
             mime="text/markdown",
         )
+
+# --- Onglet 5 : Stats ---
+with tab5:
+    st.subheader("📊 Stats — Feu, Sphères, Défauts")
+
+    feux_counts = Counter()
+    spheres_counts = Counter()
+    defauts_counts = Counter()
+
+    # Scenes de l'historique
+    for entry in st.session_state.space_history:
+        s = entry["scene"]
+        feux_counts[s["feu"]] += 1
+        spheres_counts[s["sphere"]] += 1
+        defauts_counts[s["defaut"]] += 1
+
+    # Cycle mensuel
+    if st.session_state.month_cycle is not None:
+        for day in st.session_state.month_cycle:
+            feux_counts[day["feu"]] += 1
+            spheres_counts[day["sphere"]] += 1
+            defauts_counts[day["defaut"]] += 1
+
+    if not feux_counts and not spheres_counts and not defauts_counts:
+        st.info("Aucune donnée pour l’instant. Joue quelques scènes ou génère un cycle pour voir les stats.")
+    else:
+        col_s1, col_s2 = st.columns(2)
+
+        with col_s1:
+            st.markdown("#### 🔥 Feux les plus fréquents")
+            if feux_counts:
+                df_feux = pd.DataFrame(
+                    {"Feu": list(feux_counts.keys()), "Occurrences": list(feux_counts.values())}
+                ).sort_values("Occurrences", ascending=False)
+                st.bar_chart(df_feux.set_index("Feu"))
+                st.table(df_feux)
+            else:
+                st.caption("Pas encore de données sur le Feu.")
+
+            st.markdown("#### 🜁 Défauts les plus fréquents")
+            if defauts_counts:
+                df_def = pd.DataFrame(
+                    {"Défaut": list(defauts_counts.keys()), "Occurrences": list(defauts_counts.values())}
+                ).sort_values("Occurrences", ascending=False)
+                st.bar_chart(df_def.set_index("Défaut"))
+                st.table(df_def)
+            else:
+                st.caption("Pas encore de données sur les défauts.")
+
+        with col_s2:
+            st.markdown("#### 🌐 Sphères les plus activées")
+            if spheres_counts:
+                df_sph = pd.DataFrame(
+                    {"Sphère": list(spheres_counts.keys()), "Occurrences": list(spheres_counts.values())}
+                ).sort_values("Occurrences", ascending=False)
+                st.bar_chart(df_sph.set_index("Sphère"))
+                st.table(df_sph)
+            else:
+                st.caption("Pas encore de données sur les sphères.")
 
 # ---------- FOOTER ----------
 st.markdown("---")
