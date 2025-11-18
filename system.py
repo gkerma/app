@@ -119,11 +119,43 @@ def generate_scene():
         "defaut": pick_random(defauts),
     }
 
+def build_markdown_for_scene(scene, intention, synchro, micro):
+    tri = scene["triade"]
+    fam = scene["famille"]
+    md = f"""# Scène opératique — Cyber-Opéra
+
+## Tirage
+
+- **Triade** : {tri['emoji']} {tri['name']}  
+  - Pouvoir : {tri['pouvoir']}  
+  - Clair : {tri['clair']} · Ombre : {tri['ombre']}
+
+- **Feu** : {scene['feu']}
+
+- **Sphère** : {scene['sphere']}
+
+- **Famille du grimoire** : {fam['emoji']} {fam['name']}  
+  - Motto : {fam['motto']}  
+  - Suggestion : {fam['hint']}
+
+- **Défaut à transmuter** : {scene['defaut']}
+
+---
+
+## Journal Opéra
+
+- **Intention** : {intention or "_(non renseignée)_"}
+- **Synchronicité** : {synchro or "_(non renseignée)_"}
+- **Micro-victoire** : {micro or "_(non renseignée)_"}
+"""
+    return md
+
 # ---------- SESSION STATE ----------
 
-for key in ["triade", "sphere", "feu", "famille", "scene"]:
+for key in ["triade", "sphere", "feu", "famille", "scene",
+            "journal_intention", "journal_synchro", "journal_micro"]:
     if key not in st.session_state:
-        st.session_state[key] = None
+        st.session_state[key] = "" if key.startswith("journal_") else None
 
 # ---------- SIDEBAR (COMMANDES) ----------
 
@@ -137,6 +169,10 @@ if st.sidebar.button("✨ Tirage quotidien"):
 
 if st.sidebar.button("🎭 Générer une Scène opératique"):
     st.session_state.scene = generate_scene()
+    # reset journal quand on génère une nouvelle scène
+    st.session_state.journal_intention = ""
+    st.session_state.journal_synchro = ""
+    st.session_state.journal_micro = ""
 
 st.sidebar.markdown("---")
 st.sidebar.caption("Chaque tirage est une scène. Tu choisis comment la jouer dans la matière.")
@@ -279,6 +315,46 @@ with tab2:
                 """,
                 unsafe_allow_html=True,
             )
+
+        # ---------- JOURNAL OPÉRA ----------
+        st.markdown("### 📓 Journal Opéra")
+
+        col_j1, col_j2 = st.columns(2)
+        with col_j1:
+            st.session_state.journal_intention = st.text_area(
+                "Intention",
+                value=st.session_state.journal_intention,
+                placeholder="Quel geste intérieur ou extérieur veux-tu poser dans cette scène ?",
+            )
+        with col_j2:
+            st.session_state.journal_synchro = st.text_area(
+                "Synchronicité",
+                value=st.session_state.journal_synchro,
+                placeholder="Signes, coïncidences, résonances remarquées...",
+            )
+
+        st.session_state.journal_micro = st.text_area(
+            "Micro-victoire",
+            value=st.session_state.journal_micro,
+            placeholder="Quel petit mouvement, même minuscule, honore la scène aujourd'hui ?",
+        )
+
+        # ---------- EXPORT MARKDOWN ----------
+        st.markdown("### 📤 Exporter")
+
+        md_content = build_markdown_for_scene(
+            scene,
+            st.session_state.journal_intention,
+            st.session_state.journal_synchro,
+            st.session_state.journal_micro,
+        )
+
+        st.download_button(
+            label="📥 Exporter la scène en Markdown",
+            data=md_content,
+            file_name="scene-opera.md",
+            mime="text/markdown",
+        )
 
 # ---------- FOOTER ----------
 st.markdown("---")
