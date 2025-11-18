@@ -152,7 +152,7 @@ def generate_month_cycle(days=30):
     return cycle
 
 def interpret_scene(scene, mode="Sobre"):
-    """Produit une interprétation narrative de la scène en deux tonalités."""
+    """Interprétation d'une scène (Triade/Sphère/Feu/Défaut)."""
     tri = scene["triade"]
     fam = scene["famille"]
     sphere = scene["sphere"]
@@ -172,7 +172,6 @@ def interpret_scene(scene, mode="Sobre"):
             f"mieux comprendre comment tu fonctionnes."
         )
     else:
-        # Mode Space Opera total
         texte = (
             f"Les rideaux s'ouvrent sur la scène intérieure : **{tri['emoji']} {tri['name']}** prend le rôle principal. "
             f"Tu entres dans l'acte du jour avec le pouvoir de *{tri['pouvoir']}* comme artefact central, tandis que "
@@ -187,6 +186,24 @@ def interpret_scene(scene, mode="Sobre"):
             f"fragment d'étoile brute. En l'acceptant dans le champ de ta conscience, tu ajoutes une nouvelle "
             f"note à la partition de ton Space Opera intérieur."
         )
+    return texte
+
+def interpret_cycle_day(day):
+    """Interprétation textuelle pour un jour du cycle mensuel."""
+    arc = day["arcane"]
+    sphere = day["sphere"]
+    feu = day["feu"]
+    defaut = day["defaut"]
+
+    texte = (
+        f"Pour ce jour du cycle, l'arcane actif est **{arc['emoji']} {arc['name']}** "
+        f"(thème : *{arc['theme']}*). Il pose le décor énergétique général.\n\n"
+        f"La sphère principale est **{sphere}**, qui devient le terrain privilégié des expériences et des prises de conscience.\n\n"
+        f"Le feu du jour est **{feu}**, indiquant la manière dont l'intensité circule : niveau d'élan, de fatigue, "
+        f"ou de régénération.\n\n"
+        f"Le défaut à observer, **{defaut}**, n'est pas à combattre mais à reconnaître comme un indicateur : "
+        f"il montre où le cycle t'invite à ajuster ton rapport à toi-même, aux autres ou au monde."
+    )
     return texte
 
 def build_markdown_for_scene(scene, intention, synchro, micro, interpretation):
@@ -247,6 +264,10 @@ def build_markdown_for_cycle(cycle, notes, title="Cycle mensuel — Cyber-Opéra
         lines.append(f"- Micro-geste : {micro or '_(non renseignée)_'}")
         lines.append("")
     return "\n".join(lines)
+
+def build_markdown_for_portrait(portrait_text: str) -> str:
+    """Construit un markdown exportable pour le portrait de saison."""
+    return f"# Portrait de saison — Cyber-Opéra\n\n{portrait_text}\n"
 
 # ---------- SESSION STATE ----------
 
@@ -605,6 +626,11 @@ with tab4:
             "micro": micro_note,
         }
 
+        # Interprétation du jour sélectionné
+        st.markdown("### 🧠 Interprétation du jour")
+        day_interpretation = interpret_cycle_day(day_data)
+        st.markdown(day_interpretation)
+
         st.markdown("### 📤 Export du cycle complet")
         md_cycle = build_markdown_for_cycle(
             cycle,
@@ -640,6 +666,9 @@ with tab5:
             feux_counts[day["feu"]] += 1
             spheres_counts[day["sphere"]] += 1
             defauts_counts[day["defaut"]] += 1
+
+    portrait_text = ""
+    top_feu = top_sph = top_def = None
 
     if not feux_counts and not spheres_counts and not defauts_counts:
         st.info("Aucune donnée pour l’instant. Joue quelques scènes ou génère un cycle pour voir les stats.")
@@ -703,7 +732,6 @@ with tab5:
                 sph_phrase = f"**Sphère dominante :** {top_sph['Sphère']} ({top_sph['%']}% des tirages de sphères)."
                 st.markdown(sph_phrase)
             else:
-                top_sph = None
                 sph_phrase = ""
                 st.caption("Pas encore de données sur les sphères.")
 
@@ -712,15 +740,15 @@ with tab5:
 
             portrait_lines = []
 
-            if feux_counts:
+            if top_feu is not None:
                 portrait_lines.append(
                     f"- Ton feu dominant sur cette période est **{top_feu['Feu']}**, qui colore la majorité des scènes."
                 )
-            if spheres_counts:
+            if top_sph is not None:
                 portrait_lines.append(
                     f"- La sphère la plus traversée est **{top_sph['Sphère']}**, théâtre fréquent de ton opéra intérieur."
                 )
-            if defauts_counts:
+            if top_def is not None:
                 portrait_lines.append(
                     f"- Le défaut qui revient comme matériau d'alchimie est **{top_def['Défaut']}**."
                 )
@@ -733,6 +761,15 @@ with tab5:
                       "le plus d'attention, et les motifs qui insistent pour être transformés."
                 )
                 st.markdown(portrait_text)
+
+                # Export du portrait en Markdown
+                md_portrait = build_markdown_for_portrait(portrait_text)
+                st.download_button(
+                    label="📥 Exporter le portrait de saison en Markdown",
+                    data=md_portrait,
+                    file_name="portrait-de-saison-cyber-opera.md",
+                    mime="text/markdown",
+                )
             else:
                 st.caption("Pas encore assez de matière pour un portrait de saison.")
 
