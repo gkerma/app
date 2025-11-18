@@ -270,6 +270,7 @@ def build_markdown_for_scene(scene, intention, synchro, micro, interpretation):
     return md
 
 def build_markdown_for_cycle(cycle, notes, title="Cycle mensuel — Cyber-Opéra"):
+    """Export complet du cycle : tirage + notes + interprétation de chaque jour."""
     lines = [f"# {title}", ""]
     for day in cycle:
         idx = day["jour"]
@@ -288,6 +289,22 @@ def build_markdown_for_cycle(cycle, notes, title="Cycle mensuel — Cyber-Opéra
         lines.append("**Notes :**")
         lines.append(f"- Synchronicité : {synchro or '_(non renseignée)_'}")
         lines.append(f"- Micro-geste : {micro or '_(non renseignée)_'}")
+        lines.append("")
+        lines.append("**Interprétation du jour :**")
+        lines.append("")
+        lines.append(interpret_cycle_day(day))
+        lines.append("")
+    return "\n".join(lines)
+
+def build_markdown_for_micro_oracles(cycle, title="Micro-oracles de saison — Cyber-Opéra"):
+    """Export de 30 micro-oracles : juste les interprétations des jours."""
+    lines = [f"# {title}", ""]
+    for day in cycle:
+        idx = day["jour"]
+        arc = day["arcane"]
+        lines.append(f"## Jour {idx} — {arc['emoji']} {arc['name']}")
+        lines.append("")
+        lines.append(interpret_cycle_day(day))
         lines.append("")
     return "\n".join(lines)
 
@@ -677,9 +694,22 @@ with tab4:
         )
 
         st.download_button(
-            label="📥 Exporter le cycle en Markdown",
+            label="📥 Exporter le cycle (tirages + interprétations) en Markdown",
             data=md_cycle,
             file_name="cycle-mensuel-cyber-opera.md",
+            mime="text/markdown",
+        )
+
+        # Bouton : 30 micro-oracles
+        st.markdown("### 🌌 Micro-oracles de saison")
+        md_oracles = build_markdown_for_micro_oracles(
+            cycle,
+            title="Micro-oracles de saison — Cyber-Opéra",
+        )
+        st.download_button(
+            label="📥 Générer 30 micro-oracles (Markdown)",
+            data=md_oracles,
+            file_name="micro-oracles-saison-cyber-opera.md",
             mime="text/markdown",
         )
 
