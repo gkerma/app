@@ -188,6 +188,32 @@ def interpret_scene(scene, mode="Sobre"):
         )
     return texte
 
+def interpret_daily_draw(tri, sphere, feu, fam, mode="Sobre"):
+    """Interprétation automatique pour le Tirage quotidien (sans défaut)."""
+    if mode == "Sobre":
+        texte = (
+            f"Ton tirage quotidien met en avant **{tri['emoji']} {tri['name']}** : "
+            f"un fonctionnement centré sur la *{tri['pouvoir']}*, avec un équilibre à trouver "
+            f"entre *{tri['clair']}* et *{tri['ombre']}*.\n\n"
+            f"La sphère la plus concernée aujourd'hui est **{sphere}** : c'est là que les effets du tirage "
+            f"risquent d'être les plus visibles.\n\n"
+            f"Le feu **{feu}** donne une indication sur le niveau d'intensité : énergie, fatigue, élan ou besoin de régénération.\n\n"
+            f"La famille **{fam['emoji']} {fam['name']}** propose une attitude clé : *{fam['motto']}*. "
+            f"Concrètement : {fam['hint']}"
+        )
+    else:
+        texte = (
+            f"Le Tirage quotidien ouvre un mini-acte de ton Space Opera : **{tri['emoji']} {tri['name']}** "
+            f"prend le rôle principal, portant le pouvoir de *{tri['pouvoir']}* comme un artefact lumineux. "
+            f"Le clair (*{tri['clair']}*) et l'ombre (*{tri['ombre']}*) tournent autour de toi comme deux lunes intérieures.\n\n"
+            f"La scène se joue surtout dans **{sphere}**, qui devient le décor principal du jour.\n\n"
+            f"Le feu **{feu}** détermine la température dramatique : petite étincelle à protéger, "
+            f"flamme à nourrir ou brasier à canaliser.\n\n"
+            f"La famille **{fam['emoji']} {fam['name']}** sert de metteur en scène : son motto *{fam['motto']}* "
+            f"t'indique comment te tenir sur scène. Sa consigne concrète : {fam['hint']}"
+        )
+    return texte
+
 def interpret_cycle_day(day):
     """Interprétation textuelle pour un jour du cycle mensuel."""
     arc = day["arcane"]
@@ -404,6 +430,18 @@ with tab1:
                 """,
                 unsafe_allow_html=True,
             )
+
+    # Interprétation automatique du tirage quotidien
+    if st.session_state.triade and st.session_state.sphere and st.session_state.feu and st.session_state.famille:
+        st.markdown("### 🧠 Interprétation automatique du tirage quotidien")
+        daily_text = interpret_daily_draw(
+            st.session_state.triade,
+            st.session_state.sphere,
+            st.session_state.feu,
+            st.session_state.famille,
+            mode=st.session_state.tone_mode,
+        )
+        st.markdown(daily_text)
 
 # --- Onglet 2 : Scène opératique ---
 with tab2:
@@ -626,8 +664,8 @@ with tab4:
             "micro": micro_note,
         }
 
-        # Interprétation du jour sélectionné
-        st.markdown("### 🧠 Interprétation du jour")
+        # Interprétation du jour sélectionné (tirage mensuel)
+        st.markdown("### 🧠 Interprétation du jour (cycle mensuel)")
         day_interpretation = interpret_cycle_day(day_data)
         st.markdown(day_interpretation)
 
