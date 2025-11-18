@@ -87,6 +87,20 @@ familles = [
     {"name": "Chaos", "motto": "brouiller pour révéler", "hint": "Bouscule un automatisme : change l'ordre, le chemin, la forme habituelle.", "emoji": "☄️"},
 ]
 
+# Arcanes pour le Cycle mensuel
+arcanes = [
+    {"name": "Le Portail", "emoji": "🜄", "theme": "passage, seuil, nouvelle phase"},
+    {"name": "Le Miroir", "emoji": "🪞", "theme": "reflet, conscience de soi"},
+    {"name": "La Tour Data", "emoji": "🛰️", "theme": "structure, système, réseau"},
+    {"name": "Le Flux", "emoji": "🌊", "theme": "mouvement, lâcher-prise"},
+    {"name": "L’Astre Noir", "emoji": "🌑", "theme": "inconscient, incubation"},
+    {"name": "Le Pont", "emoji": "🌉", "theme": "lien, médiation, passage entre mondes"},
+    {"name": "Le Masque", "emoji": "🎭", "theme": "rôle, persona, jeu social"},
+    {"name": "Le Grimoire", "emoji": "📜", "theme": "connaissance, mémoire, trace"},
+    {"name": "La Spirale", "emoji": "🌀", "theme": "répétition créatrice, cycle"},
+    {"name": "Le Cœur Quantique", "emoji": "💗", "theme": "lien profond, amour, résonance"},
+]
+
 # Défauts possibles pour la 5e carte de la scène opératique
 defauts = [
     "dispersion", "anxiété",
@@ -120,28 +134,57 @@ def generate_scene():
         "defaut": pick_random(defauts),
     }
 
-def interpret_scene(scene):
-    """Produit une interprétation narrative de la scène."""
+def generate_month_cycle(days=30):
+    """Génère un cycle mensuel (30 jours) : Arcane + Sphère + Défaut + Feu."""
+    cycle = []
+    for i in range(days):
+        cycle.append(
+            {
+                "jour": i + 1,
+                "arcane": pick_random(arcanes),
+                "sphere": pick_random(spheres),
+                "feu": pick_random(feux),
+                "defaut": pick_random(defauts),
+            }
+        )
+    return cycle
+
+def interpret_scene(scene, mode="Sobre"):
+    """Produit une interprétation narrative de la scène en deux tonalités."""
     tri = scene["triade"]
     fam = scene["famille"]
     sphere = scene["sphere"]
     feu = scene["feu"]
     defaut = scene["defaut"]
 
-    texte = (
-        f"Aujourd'hui, tu entres en scène sous l'archétype **{tri['emoji']} {tri['name']}** : "
-        f"ton pouvoir dominant est la *{tri['pouvoir']}*, avec en toile de fond le jeu subtil entre "
-        f"le clair (*{tri['clair']}*) et l'ombre (*{tri['ombre']}*).\n\n"
-        f"La scène principale se joue dans la sphère **{sphere}**, ce qui signifie que c'est là "
-        f"que l'énergie va se concentrer.\n\n"
-        f"Le feu qui colore toute la scène est **{feu}**, indiquant le niveau d'intensité intérieure "
-        f"et la vitesse à laquelle les choses veulent se transformer.\n\n"
-        f"La famille du grimoire qui orchestre la dynamique est **{fam['emoji']} {fam['name']}** "
-        f"(motto : *{fam['motto']}*), t'invitant à incarner l'attitude suivante : {fam['hint']}\n\n"
-        f"Enfin, le défaut à transmuter aujourd'hui est **{defaut}** : il ne s'agit pas d'un échec, "
-        f"mais d'un matériau brut pour l'alchimie de ta scène. En le regardant sans jugement, tu peux "
-        f"le transformer en ressource de conscience."
-    )
+    if mode == "Sobre":
+        texte = (
+            f"Aujourd'hui, ton fonctionnement dominant est placé sous l'archétype **{tri['emoji']} {tri['name']}** : "
+            f"ton pouvoir clé est la *{tri['pouvoir']}*, avec une tension entre le clair (*{tri['clair']}*) "
+            f"et l'ombre (*{tri['ombre']}*).\n\n"
+            f"La zone de vie la plus concernée est **{sphere}**, où ton attention est invitée à se poser.\n\n"
+            f"Le niveau d'intensité globale est **{feu}**, ce qui peut te servir de repère pour ajuster ton rythme.\n\n"
+            f"La dynamique recommandée par le système est **{fam['emoji']} {fam['name']}** "
+            f"(motto : *{fam['motto']}*), avec une proposition concrète : {fam['hint']}\n\n"
+            f"Le défaut du jour, **{defaut}**, n'est pas une faute mais un signal : un endroit à observer pour "
+            f"mieux comprendre comment tu fonctionnes."
+        )
+    else:
+        # Mode Space Opera total
+        texte = (
+            f"Les rideaux s'ouvrent sur la scène intérieure : **{tri['emoji']} {tri['name']}** prend le rôle principal. "
+            f"Tu entres dans l'acte du jour avec le pouvoir de *{tri['pouvoir']}* comme artefact central, tandis que "
+            f"le clair (*{tri['clair']}*) et l'ombre (*{tri['ombre']}*) dansent comme deux satellites autour de ton esprit.\n\n"
+            f"Le théâtre choisi par le Cyber-Opéra est **{sphere}** : c'est là que les projecteurs se braquent, là "
+            f"où les dialogues et les gestes auront un poids particulier.\n\n"
+            f"Dans les coulisses énergétiques, le feu actif est **{feu}**. Il définit la température cosmique de ta journée : "
+            f"soit une étincelle à nourrir, soit un brasier à canaliser, soit des cendres à remuer pour réveiller le Phoenix.\n\n"
+            f"La Famille du Grimoire qui orchestre la vibration de la scène est **{fam['emoji']} {fam['name']}** "
+            f"(motto : *{fam['motto']}*). C'est l'esprit qui te murmure : {fam['hint']}\n\n"
+            f"Dans l'ombre des décors se cache **{defaut}**, non comme un monstre à abattre mais comme un "
+            f"fragment d'étoile brute. En l'acceptant dans le champ de ta conscience, tu ajoutes une nouvelle "
+            f"note à la partition de ton Space Opera intérieur."
+        )
     return texte
 
 def build_markdown_for_scene(scene, intention, synchro, micro, interpretation):
@@ -181,16 +224,45 @@ def build_markdown_for_scene(scene, intention, synchro, micro, interpretation):
 """
     return md
 
+def build_markdown_for_cycle(cycle, notes, title="Cycle mensuel — Cyber-Opéra"):
+    lines = [f"# {title}", ""]
+    for day in cycle:
+        idx = day["jour"]
+        arc = day["arcane"]
+        key = str(idx)
+        note = notes.get(key, {})
+        synchro = note.get("synchro", "")
+        micro = note.get("micro", "")
+        lines.append(f"## Jour {idx} — {arc['emoji']} {arc['name']}")
+        lines.append("")
+        lines.append(f"- **Arcane** : {arc['emoji']} {arc['name']} — *{arc['theme']}*")
+        lines.append(f"- **Sphère** : {day['sphere']}")
+        lines.append(f"- **Feu** : {day['feu']}")
+        lines.append(f"- **Défaut à observer** : {day['defaut']}")
+        lines.append("")
+        lines.append("**Notes :**")
+        lines.append(f"- Synchronicité : {synchro or '_(non renseignée)_'}")
+        lines.append(f"- Micro-geste : {micro or '_(non renseignée)_'}")
+        lines.append("")
+    return "\n".join(lines)
+
 # ---------- SESSION STATE ----------
 
 for key in [
     "triade", "sphere", "feu", "famille", "scene",
     "journal_intention", "journal_synchro", "journal_micro",
-    "scene_interpretation", "space_history"
+    "scene_interpretation", "space_history",
+    "month_cycle", "month_cycle_notes", "tone_mode"
 ]:
     if key not in st.session_state:
         if key == "space_history":
-            st.session_state[key] = []   # liste d'entrées d'historique
+            st.session_state[key] = []
+        elif key == "month_cycle":
+            st.session_state[key] = None
+        elif key == "month_cycle_notes":
+            st.session_state[key] = {}
+        elif key == "tone_mode":
+            st.session_state[key] = "Space Opera total"
         elif key.startswith("journal_") or key.endswith("interpretation"):
             st.session_state[key] = ""
         else:
@@ -198,7 +270,18 @@ for key in [
 
 # ---------- SIDEBAR (COMMANDES) ----------
 
-st.sidebar.header("🎛️ Contrôle de la scène")
+st.sidebar.header("🎛️ Contrôle")
+
+st.sidebar.write("### Tonalité des interprétations")
+st.session_state.tone_mode = st.sidebar.radio(
+    "Tonalité",
+    options=["Sobre", "Space Opera total"],
+    index=1,
+    label_visibility="collapsed",
+)
+
+st.sidebar.markdown("---")
+st.sidebar.header("🎲 Tirages")
 
 if st.sidebar.button("✨ Tirage quotidien"):
     st.session_state.triade = pick_random(triades)
@@ -213,8 +296,8 @@ if st.sidebar.button("🎭 Générer une Scène opératique"):
     st.session_state.journal_intention = ""
     st.session_state.journal_synchro = ""
     st.session_state.journal_micro = ""
-    # nouvelle interprétation
-    interp = interpret_scene(scene)
+    # nouvelle interprétation selon le mode
+    interp = interpret_scene(scene, mode=st.session_state.tone_mode)
     st.session_state.scene_interpretation = interp
     # entrée historique automatique
     st.session_state.space_history.append(
@@ -222,15 +305,22 @@ if st.sidebar.button("🎭 Générer une Scène opératique"):
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M"),
             "scene": scene,
             "interpretation": interp,
+            "tone": st.session_state.tone_mode,
         }
     )
 
 st.sidebar.markdown("---")
-st.sidebar.caption("Chaque tirage est une scène. Tu choisis comment la jouer dans la matière.")
+if st.sidebar.button("🗓️ Générer un cycle mensuel (30 jours)"):
+    st.session_state.month_cycle = generate_month_cycle(days=30)
+    st.session_state.month_cycle_notes = {}
+
+st.sidebar.caption("Chaque tirage est une scène. Chaque cycle est une saison de ton Space Opera.")
 
 # ---------- CONTENU PRINCIPAL : TABS ----------
 
-tab1, tab2, tab3 = st.tabs(["🌓 Tirage quotidien", "🎭 Scène opératique", "📚 Historique Space Opera"])
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["🌓 Tirage quotidien", "🎭 Scène opératique", "📚 Historique Space Opera", "🗓️ Cycle mensuel"]
+)
 
 # --- Onglet 1 : Tirage quotidien ---
 with tab1:
@@ -419,7 +509,6 @@ with tab3:
     if not st.session_state.space_history:
         st.info("Aucune scène enregistrée pour l’instant. Génère une scène opératique pour commencer l’historique.")
     else:
-        # On affiche de la plus récente à la plus ancienne
         for entry in reversed(st.session_state.space_history):
             s = entry["scene"]
             tri = s["triade"]
@@ -427,7 +516,7 @@ with tab3:
             st.markdown(
                 f"""
                 <div class="card">
-                    <div class="mini-label">SCÈNE DU {entry['timestamp']}</div>
+                    <div class="mini-label">SCÈNE DU {entry['timestamp']} — Tonalité : {entry['tone']}</div>
                     <p><b>Triade</b> : {tri['emoji']} {tri['name']} · <b>Feu</b> : {s['feu']}</p>
                     <p><b>Sphère</b> : {s['sphere']} · <b>Famille</b> : {fam['emoji']} {fam['name']}</p>
                     <p><b>Défaut</b> : {s['defaut']}</p>
@@ -438,6 +527,96 @@ with tab3:
                 unsafe_allow_html=True,
             )
 
+# --- Onglet 4 : Cycle mensuel ---
+with tab4:
+    st.subheader("🗓️ Cycle mensuel — Arcane + Sphère + Défaut + Feu")
+
+    if st.session_state.month_cycle is None:
+        st.info("Clique sur **« 🗓️ Générer un cycle mensuel (30 jours) »** dans la sidebar pour créer un cycle.")
+    else:
+        cycle = st.session_state.month_cycle
+
+        # Sélection d'un jour
+        jours = [d["jour"] for d in cycle]
+        selected_day = st.selectbox("Choisir un jour du cycle", options=jours, index=0)
+        day_data = next(d for d in cycle if d["jour"] == selected_day)
+        idx_key = str(selected_day)
+
+        col_c1, col_c2 = st.columns(2)
+        with col_c1:
+            arc = day_data["arcane"]
+            st.markdown(
+                f"""
+                <div class="card">
+                    <div class="mini-label">ARCANE DU JOUR</div>
+                    <h3>{arc['emoji']} {arc['name']}</h3>
+                    <p>Thème : {arc['theme']}</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            st.markdown(
+                f"""
+                <div class="card">
+                    <div class="mini-label">FEU</div>
+                    <h3>{day_data['feu']}</h3>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        with col_c2:
+            st.markdown(
+                f"""
+                <div class="card">
+                    <div class="mini-label">SPHÈRE</div>
+                    <h3>{day_data['sphere']}</h3>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f"""
+                <div class="card">
+                    <div class="mini-label">DÉFAUT À OBSERVER</div>
+                    <h3>🜁 {day_data['defaut']}</h3>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        # Notes pour ce jour
+        existing = st.session_state.month_cycle_notes.get(idx_key, {"synchro": "", "micro": ""})
+        synchro_note = st.text_area(
+            "Synchronicité (jour " + str(selected_day) + ")",
+            value=existing.get("synchro", ""),
+        )
+        micro_note = st.text_area(
+            "Micro-geste (jour " + str(selected_day) + ")",
+            value=existing.get("micro", ""),
+        )
+
+        # Mise à jour des notes en mémoire
+        st.session_state.month_cycle_notes[idx_key] = {
+            "synchro": synchro_note,
+            "micro": micro_note,
+        }
+
+        st.markdown("### 📤 Export du cycle complet")
+        md_cycle = build_markdown_for_cycle(
+            cycle,
+            st.session_state.month_cycle_notes,
+            title="Cycle mensuel — Cyber-Opéra",
+        )
+
+        st.download_button(
+            label="📥 Exporter le cycle en Markdown",
+            data=md_cycle,
+            file_name="cycle-mensuel-cyber-opera.md",
+            mime="text/markdown",
+        )
+
 # ---------- FOOTER ----------
 st.markdown("---")
-st.caption("🕯️ Chaque tirage est une scène. À toi de jouer l'opéra dans la matière.")
+st.caption("🕯️ Chaque tirage est une scène. Chaque cycle est une saison de ton Space Opera.")
