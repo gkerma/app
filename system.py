@@ -1,5 +1,6 @@
 import streamlit as st
 import random
+from datetime import datetime
 
 st.set_page_config(page_title="Cyber-Opéra — Générative", layout="centered")
 
@@ -119,7 +120,31 @@ def generate_scene():
         "defaut": pick_random(defauts),
     }
 
-def build_markdown_for_scene(scene, intention, synchro, micro):
+def interpret_scene(scene):
+    """Produit une interprétation narrative de la scène."""
+    tri = scene["triade"]
+    fam = scene["famille"]
+    sphere = scene["sphere"]
+    feu = scene["feu"]
+    defaut = scene["defaut"]
+
+    texte = (
+        f"Aujourd'hui, tu entres en scène sous l'archétype **{tri['emoji']} {tri['name']}** : "
+        f"ton pouvoir dominant est la *{tri['pouvoir']}*, avec en toile de fond le jeu subtil entre "
+        f"le clair (*{tri['clair']}*) et l'ombre (*{tri['ombre']}*).\n\n"
+        f"La scène principale se joue dans la sphère **{sphere}**, ce qui signifie que c'est là "
+        f"que l'énergie va se concentrer.\n\n"
+        f"Le feu qui colore toute la scène est **{feu}**, indiquant le niveau d'intensité intérieure "
+        f"et la vitesse à laquelle les choses veulent se transformer.\n\n"
+        f"La famille du grimoire qui orchestre la dynamique est **{fam['emoji']} {fam['name']}** "
+        f"(motto : *{fam['motto']}*), t'invitant à incarner l'attitude suivante : {fam['hint']}\n\n"
+        f"Enfin, le défaut à transmuter aujourd'hui est **{defaut}** : il ne s'agit pas d'un échec, "
+        f"mais d'un matériau brut pour l'alchimie de ta scène. En le regardant sans jugement, tu peux "
+        f"le transformer en ressource de conscience."
+    )
+    return texte
+
+def build_markdown_for_scene(scene, intention, synchro, micro, interpretation):
     tri = scene["triade"]
     fam = scene["famille"]
     md = f"""# Scène opératique — Cyber-Opéra
@@ -142,6 +167,12 @@ def build_markdown_for_scene(scene, intention, synchro, micro):
 
 ---
 
+## Interprétation
+
+{interpretation}
+
+---
+
 ## Journal Opéra
 
 - **Intention** : {intention or "_(non renseignée)_"}
@@ -152,10 +183,18 @@ def build_markdown_for_scene(scene, intention, synchro, micro):
 
 # ---------- SESSION STATE ----------
 
-for key in ["triade", "sphere", "feu", "famille", "scene",
-            "journal_intention", "journal_synchro", "journal_micro"]:
+for key in [
+    "triade", "sphere", "feu", "famille", "scene",
+    "journal_intention", "journal_synchro", "journal_micro",
+    "scene_interpretation", "space_history"
+]:
     if key not in st.session_state:
-        st.session_state[key] = "" if key.startswith("journal_") else None
+        if key == "space_history":
+            st.session_state[key] = []   # liste d'entrées d'historique
+        elif key.startswith("journal_") or key.endswith("interpretation"):
+            st.session_state[key] = ""
+        else:
+            st.session_state[key] = None
 
 # ---------- SIDEBAR (COMMANDES) ----------
 
@@ -168,18 +207,30 @@ if st.sidebar.button("✨ Tirage quotidien"):
     st.session_state.famille = pick_random(familles)
 
 if st.sidebar.button("🎭 Générer une Scène opératique"):
-    st.session_state.scene = generate_scene()
-    # reset journal quand on génère une nouvelle scène
+    scene = generate_scene()
+    st.session_state.scene = scene
+    # reset journal
     st.session_state.journal_intention = ""
     st.session_state.journal_synchro = ""
     st.session_state.journal_micro = ""
+    # nouvelle interprétation
+    interp = interpret_scene(scene)
+    st.session_state.scene_interpretation = interp
+    # entrée historique automatique
+    st.session_state.space_history.append(
+        {
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "scene": scene,
+            "interpretation": interp,
+        }
+    )
 
 st.sidebar.markdown("---")
 st.sidebar.caption("Chaque tirage est une scène. Tu choisis comment la jouer dans la matière.")
 
 # ---------- CONTENU PRINCIPAL : TABS ----------
 
-tab1, tab2 = st.tabs(["🌓 Tirage quotidien", "🎭 Scène opératique"])
+tab1, tab2, tab3 = st.tabs(["🌓 Tirage quotidien", "🎭 Scène opératique", "📚 Historique Space Opera"])
 
 # --- Onglet 1 : Tirage quotidien ---
 with tab1:
@@ -347,6 +398,7 @@ with tab2:
             st.session_state.journal_intention,
             st.session_state.journal_synchro,
             st.session_state.journal_micro,
+            st.session_state.scene_interpretation,
         )
 
         st.download_button(
@@ -355,6 +407,36 @@ with tab2:
             file_name="scene-opera.md",
             mime="text/markdown",
         )
+
+        # ---------- INTERPRÉTATION AFFICHÉE ----------
+        st.markdown("### 🧠 Interprétation automatique")
+        st.markdown(st.session_state.scene_interpretation)
+
+# --- Onglet 3 : Historique Space Opera ---
+with tab3:
+    st.subheader("📚 Historique Space Opera")
+
+    if not st.session_state.space_history:
+        st.info("Aucune scène enregistrée pour l’instant. Génère une scène opératique pour commencer l’historique.")
+    else:
+        # On affiche de la plus récente à la plus ancienne
+        for entry in reversed(st.session_state.space_history):
+            s = entry["scene"]
+            tri = s["triade"]
+            fam = s["famille"]
+            st.markdown(
+                f"""
+                <div class="card">
+                    <div class="mini-label">SCÈNE DU {entry['timestamp']}</div>
+                    <p><b>Triade</b> : {tri['emoji']} {tri['name']} · <b>Feu</b> : {s['feu']}</p>
+                    <p><b>Sphère</b> : {s['sphere']} · <b>Famille</b> : {fam['emoji']} {fam['name']}</p>
+                    <p><b>Défaut</b> : {s['defaut']}</p>
+                    <hr/>
+                    <p style="font-size:0.85rem;opacity:0.9;">{entry['interpretation']}</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
 # ---------- FOOTER ----------
 st.markdown("---")
