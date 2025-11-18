@@ -321,7 +321,7 @@ st.sidebar.caption("Chaque tirage est une scène. Chaque cycle est une saison de
 # ---------- CONTENU PRINCIPAL : TABS ----------
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs(
-    ["🌓 Tirage quotidien", "🎭 Scène opératique", "📚 Historique", "🗓️ Cycle mensuel", "📊 Stats"]
+    ["🌓 Tirage quotidien", "🎭 Scène opératique", "📚 Historique", "🗓️ Cycle mensuel", "📊 Stats & Grimoire"]
 )
 
 # --- Onglet 1 : Tirage quotidien ---
@@ -619,7 +619,7 @@ with tab4:
             mime="text/markdown",
         )
 
-# --- Onglet 5 : Stats ---
+# --- Onglet 5 : Stats & Grimoire ---
 with tab5:
     st.subheader("📊 Stats — Feu, Sphères, Défauts")
 
@@ -646,37 +646,105 @@ with tab5:
     else:
         col_s1, col_s2 = st.columns(2)
 
+        # ---------- FEUX ----------
         with col_s1:
             st.markdown("#### 🔥 Feux les plus fréquents")
             if feux_counts:
+                total_feux = sum(feux_counts.values())
                 df_feux = pd.DataFrame(
                     {"Feu": list(feux_counts.keys()), "Occurrences": list(feux_counts.values())}
-                ).sort_values("Occurrences", ascending=False)
-                st.bar_chart(df_feux.set_index("Feu"))
+                )
+                df_feux["%"] = (df_feux["Occurrences"] / total_feux * 100).round(1)
+                df_feux = df_feux.sort_values("Occurrences", ascending=False)
+                st.bar_chart(df_feux.set_index("Feu")["Occurrences"])
                 st.table(df_feux)
+
+                top_feu = df_feux.iloc[0]
+                st.markdown(
+                    f"**Feu dominant :** {top_feu['Feu']} "
+                    f"({top_feu['%']}% des tirages Feu)."
+                )
             else:
                 st.caption("Pas encore de données sur le Feu.")
 
             st.markdown("#### 🜁 Défauts les plus fréquents")
             if defauts_counts:
+                total_def = sum(defauts_counts.values())
                 df_def = pd.DataFrame(
                     {"Défaut": list(defauts_counts.keys()), "Occurrences": list(defauts_counts.values())}
-                ).sort_values("Occurrences", ascending=False)
-                st.bar_chart(df_def.set_index("Défaut"))
+                )
+                df_def["%"] = (df_def["Occurrences"] / total_def * 100).round(1)
+                df_def = df_def.sort_values("Occurrences", ascending=False)
+                st.bar_chart(df_def.set_index("Défaut")["Occurrences"])
                 st.table(df_def)
+
+                top_def = df_def.iloc[0]
+                st.markdown(
+                    f"**Défaut récurrent :** {top_def['Défaut']} "
+                    f"({top_def['%']}% des défauts tirés)."
+                )
             else:
                 st.caption("Pas encore de données sur les défauts.")
 
+        # ---------- SPHÈRES + PORTRAIT ----------
         with col_s2:
             st.markdown("#### 🌐 Sphères les plus activées")
             if spheres_counts:
+                total_sph = sum(spheres_counts.values())
                 df_sph = pd.DataFrame(
                     {"Sphère": list(spheres_counts.keys()), "Occurrences": list(spheres_counts.values())}
-                ).sort_values("Occurrences", ascending=False)
-                st.bar_chart(df_sph.set_index("Sphère"))
+                )
+                df_sph["%"] = (df_sph["Occurrences"] / total_sph * 100).round(1)
+                df_sph = df_sph.sort_values("Occurrences", ascending=False)
+                st.bar_chart(df_sph.set_index("Sphère")["Occurrences"])
                 st.table(df_sph)
+
+                top_sph = df_sph.iloc[0]
+                sph_phrase = f"**Sphère dominante :** {top_sph['Sphère']} ({top_sph['%']}% des tirages de sphères)."
+                st.markdown(sph_phrase)
             else:
+                top_sph = None
+                sph_phrase = ""
                 st.caption("Pas encore de données sur les sphères.")
+
+            # ---------- PORTRAIT DE SAISON ----------
+            st.markdown("### 🧾 Portrait de saison")
+
+            portrait_lines = []
+
+            if feux_counts:
+                portrait_lines.append(
+                    f"- Ton feu dominant sur cette période est **{top_feu['Feu']}**, qui colore la majorité des scènes."
+                )
+            if spheres_counts:
+                portrait_lines.append(
+                    f"- La sphère la plus traversée est **{top_sph['Sphère']}**, théâtre fréquent de ton opéra intérieur."
+                )
+            if defauts_counts:
+                portrait_lines.append(
+                    f"- Le défaut qui revient comme matériau d'alchimie est **{top_def['Défaut']}**."
+                )
+
+            if portrait_lines:
+                portrait_text = (
+                    "Sur l’ensemble des tirages joués, on peut esquisser ce **portrait de saison** :\n\n"
+                    + "\n".join(portrait_lines)
+                    + "\n\nCela décrit la tonalité actuelle de ton Space Opera : les zones qui demandent "
+                      "le plus d'attention, et les motifs qui insistent pour être transformés."
+                )
+                st.markdown(portrait_text)
+            else:
+                st.caption("Pas encore assez de matière pour un portrait de saison.")
+
+        st.markdown("---")
+        # ---------- IMPORT DE GRIMOIRE .MD ----------
+        st.markdown("### 📥 Importer un grimoire (.md)")
+
+        uploaded_md = st.file_uploader("Importer un fichier Markdown (.md)", type=["md"])
+        if uploaded_md is not None:
+            content = uploaded_md.read().decode("utf-8", errors="ignore")
+            st.markdown("#### Contenu importé")
+            st.markdown(content)
 
 # ---------- FOOTER ----------
 st.markdown("---")
