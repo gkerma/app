@@ -73,8 +73,6 @@ st.markdown(
         letter-spacing: 0.18em;
         margin-bottom: 0.35rem;
     }
-    </style>
-    <style>
 
 @media (max-width: 900px) {
 
