@@ -269,9 +269,12 @@ def build_markdown_for_scene(scene, intention, synchro, micro, interpretation):
 """
     return md
 
-def build_markdown_for_cycle(cycle, notes, title="Cycle mensuel — Cyber-Opéra"):
+def build_markdown_for_cycle(cycle, notes, title="Cycle mensuel — Cyber-Opéra", include_title=True):
     """Export complet du cycle : tirage + notes + interprétation de chaque jour."""
-    lines = [f"# {title}", ""]
+    lines = []
+    if include_title:
+        lines.append(f"# {title}")
+        lines.append("")
     for day in cycle:
         idx = day["jour"]
         arc = day["arcane"]
@@ -296,9 +299,12 @@ def build_markdown_for_cycle(cycle, notes, title="Cycle mensuel — Cyber-Opéra
         lines.append("")
     return "\n".join(lines)
 
-def build_markdown_for_micro_oracles(cycle, title="Micro-oracles de saison — Cyber-Opéra"):
-    """Export de 30 micro-oracles : juste les interprétations des jours."""
-    lines = [f"# {title}", ""]
+def build_markdown_for_micro_oracles(cycle, title="Micro-oracles de saison — Cyber-Opéra", include_title=True):
+    """Export de micro-oracles : interprétation de chaque jour."""
+    lines = []
+    if include_title:
+        lines.append(f"# {title}")
+        lines.append("")
     for day in cycle:
         idx = day["jour"]
         arc = day["arcane"]
@@ -311,6 +317,41 @@ def build_markdown_for_micro_oracles(cycle, title="Micro-oracles de saison — C
 def build_markdown_for_portrait(portrait_text: str) -> str:
     """Construit un markdown exportable pour le portrait de saison."""
     return f"# Portrait de saison — Cyber-Opéra\n\n{portrait_text}\n"
+
+def build_markdown_for_grimoire(cycle, notes, portrait_text: str) -> str:
+    """Grimoire de saison : portrait + cycle + micro-oracles."""
+    lines = [ "# Grimoire de saison — Cyber-Opéra", "" ]
+
+    # Portrait
+    if portrait_text:
+        lines.append("## Portrait de saison")
+        lines.append("")
+        lines.append(portrait_text)
+        lines.append("")
+
+    # Cycle complet
+    lines.append("## Cycle complet")
+    lines.append("")
+    cycle_md = build_markdown_for_cycle(
+        cycle,
+        notes,
+        title="Cycle mensuel — Cyber-Opéra",
+        include_title=False,
+    )
+    lines.append(cycle_md)
+    lines.append("")
+
+    # Micro-oracles
+    lines.append("## Micro-oracles de saison")
+    lines.append("")
+    micro_md = build_markdown_for_micro_oracles(
+        cycle,
+        title="Micro-oracles de saison — Cyber-Opéra",
+        include_title=False,
+    )
+    lines.append(micro_md)
+
+    return "\n".join(lines)
 
 # ---------- SESSION STATE ----------
 
@@ -691,6 +732,7 @@ with tab4:
             cycle,
             st.session_state.month_cycle_notes,
             title="Cycle mensuel — Cyber-Opéra",
+            include_title=True,
         )
 
         st.download_button(
@@ -705,6 +747,7 @@ with tab4:
         md_oracles = build_markdown_for_micro_oracles(
             cycle,
             title="Micro-oracles de saison — Cyber-Opéra",
+            include_title=True,
         )
         st.download_button(
             label="📥 Générer 30 micro-oracles (Markdown)",
@@ -830,7 +873,7 @@ with tab5:
                 )
                 st.markdown(portrait_text)
 
-                # Export du portrait en Markdown
+                # Export du portrait seul
                 md_portrait = build_markdown_for_portrait(portrait_text)
                 st.download_button(
                     label="📥 Exporter le portrait de saison en Markdown",
@@ -838,6 +881,21 @@ with tab5:
                     file_name="portrait-de-saison-cyber-opera.md",
                     mime="text/markdown",
                 )
+
+                # -------- Grimoire de saison (export unique) --------
+                if st.session_state.month_cycle is not None:
+                    st.markdown("### 📚 Grimoire de saison (export unique)")
+                    md_grimoire = build_markdown_for_grimoire(
+                        st.session_state.month_cycle,
+                        st.session_state.month_cycle_notes,
+                        portrait_text,
+                    )
+                    st.download_button(
+                        label="📥 Exporter le Grimoire de saison (Markdown)",
+                        data=md_grimoire,
+                        file_name="grimoire-de-saison-cyber-opera.md",
+                        mime="text/markdown",
+                    )
             else:
                 st.caption("Pas encore assez de matière pour un portrait de saison.")
 
