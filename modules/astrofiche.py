@@ -1,24 +1,28 @@
 """
 AstroFiche — Module autonome pour Cyber-Opéra
-Version finale optimisée
+Version tolérante : fonctionne même sans flatlib/swisseph.
 
-Fonctionnalités :
-- 12 signes astrodynamiques (données étendues)
+- 12 signes astrodynamiques
 - Profil natal par défaut
-- Calcul automatique du thème natal (Soleil / Lune / Ascendant) via flatlib
-- Récupération d’un signe
-- Analyse de résonance Sujet ↔ Personnage
-- Interprétation narrative (Sobre / Space Opera total)
-
-Dépendances :
-    pip install flatlib
+- Si flatlib + swisseph sont installés : calcul automatique Soleil/Lune/Ascendant
+- Sinon : calcul automatique désactivé proprement.
 """
 
-from flatlib.chart import Chart
-from flatlib import const
+# ============================================================
+# 1. IMPORT OPTIONNEL DE FLATLIB / SWISSEPH
+# ============================================================
+
+try:
+    from flatlib.chart import Chart
+    from flatlib import const
+    HAS_ASTRO_LIB = True
+except Exception:
+    Chart = None
+    const = None
+    HAS_ASTRO_LIB = False
 
 # ============================================================
-# 1. BASE DE DONNÉES — 12 SIGNES ASTRODYNA.
+# 2. BASE DE DONNÉES — 12 SIGNES
 # ============================================================
 
 ASTRO_SIGNS = [
@@ -97,7 +101,7 @@ ASTRO_SIGNS = [
 ]
 
 # ============================================================
-# 2. PROFIL NATAL PAR DÉFAUT
+# 3. PROFIL NATAL PAR DÉFAUT
 # ============================================================
 
 DEFAULT_NATAL = {
@@ -107,11 +111,18 @@ DEFAULT_NATAL = {
 }
 
 # ============================================================
-# 3. CALCUL AUTOMATIQUE DU THÈME NATAL
+# 4. CALCUL AUTOMATIQUE DU THÈME NATAL
 # ============================================================
 
 def compute_birth_chart(date, time, lat, lon):
-    """Calcule Soleil, Lune, Ascendant via Flatlib."""
+    """
+    Calcule Soleil / Lune / Ascendant via flatlib si disponible.
+    Si la librairie astro n'est pas disponible, renvoie le profil par défaut.
+    """
+    if not HAS_ASTRO_LIB:
+        # Fallback : on retourne juste le profil par défaut
+        return DEFAULT_NATAL.copy()
+
     chart = Chart(date, time, lat, lon)
     return {
         "soleil": chart.get(const.SUN).sign.capitalize(),
@@ -120,18 +131,17 @@ def compute_birth_chart(date, time, lat, lon):
     }
 
 # ============================================================
-# 4. RÉCUPÉRATION D’UN SIGNE
+# 5. ACCÈS À UN SIGNE
 # ============================================================
 
 def get_sign_data(sign_name):
     return next(s for s in ASTRO_SIGNS if s["name"] == sign_name)
 
 # ============================================================
-# 5. RÉSONANCE SUJET ↔ PERSONNAGE
+# 6. RÉSONANCE SUJET ↔ PERSONNAGE
 # ============================================================
 
 def compute_resonance(personnage, profil_natal):
-    """Analyse détaillée des résonances astrologiques."""
     sun = get_sign_data(profil_natal["soleil"])
     moon = get_sign_data(profil_natal["lune"])
     asc  = get_sign_data(profil_natal["ascendant"])
@@ -141,22 +151,18 @@ def compute_resonance(personnage, profil_natal):
     score = 0
     notes = []
 
-    # Résonance directe
     if personnage["name"] in [s["name"] for s in natal_signs]:
         score += 3
         notes.append("Résonance directe (Soleil, Lune ou Ascendant)")
 
-    # Éléments
     if personnage["element"] in [s["element"] for s in natal_signs]:
         score += 2
         notes.append(f"Affinité élémentaire ({personnage['element']})")
 
-    # Modes
     if personnage["mode"] in [s["mode"] for s in natal_signs]:
         score += 1
         notes.append(f"Harmonie modale ({personnage['mode']})")
 
-    # Opposition élémentaire
     oppositions = {"Feu": "Eau", "Eau": "Feu", "Terre": "Air", "Air": "Terre"}
     if oppositions[personnage["element"]] in [s["element"] for s in natal_signs]:
         score -= 1
@@ -165,7 +171,7 @@ def compute_resonance(personnage, profil_natal):
     return score, notes
 
 # ============================================================
-# 6. INTERPRÉTATION NARRATIVE
+# 7. INTERPRÉTATION NARRATIVE
 # ============================================================
 
 def interpret_character(personnage, profil_natal, mode="Space Opera total"):
@@ -176,19 +182,21 @@ def interpret_character(personnage, profil_natal, mode="Space Opera total"):
         txt += "Résonances avec ton thème natal :\n"
         for n in notes:
             txt += f"- {n}\n"
-        txt += f"\nPouvoir : **{personnage['pouvoir']}**\nFragilité : **{personnage['fragilite']}**"
+        txt += (
+            f"\nPouvoir : **{personnage['pouvoir']}**\n"
+            f"Fragilité : **{personnage['fragilite']}**"
+        )
         return txt
 
-    # Space Opera total
     txt = (
-        f"Le **{personnage['emoji']} {personnage['name']}** traverse la scène quantique de ton Opéra intérieur. "
-        "Les résonances se déploient comme des vecteurs interstellaires :\n\n"
+        f"Le **{personnage['emoji']} {personnage['name']}** traverse la scène de ton Opéra intérieur. "
+        "Ses signaux résonnent avec ta triade natale :\n\n"
     )
     for n in notes:
         txt += f"- {n}\n"
     txt += "\n"
     txt += (
         f"L’artefact activé est **{personnage['pouvoir']}**, "
-        f"tandis que son ombre **{personnage['fragilite']}** murmure les zones à transmuter."
+        f"tandis que l’ombre **{personnage['fragilite']}** indique la zone d’alchimie du moment."
     )
     return txt
