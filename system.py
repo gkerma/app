@@ -9,6 +9,7 @@ import random
 from datetime import datetime
 from collections import Counter
 import pandas as pd
+from modules.astrofiche import HAS_ASTRO_LIB
 
 # Import du module astrofiche
 from modules.astrofiche import (
