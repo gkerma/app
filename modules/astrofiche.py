@@ -1,7 +1,14 @@
 """
 AstroFiche — Module autonome pour Cyber-Opéra
-Gestion du profil natal, calcul automatique du thème natal,
-résonance Sujet ↔ Personnage, et interprétations opératiques.
+Version finale optimisée
+
+Fonctionnalités :
+- 12 signes astrodynamiques (données étendues)
+- Profil natal par défaut
+- Calcul automatique du thème natal (Soleil / Lune / Ascendant) via flatlib
+- Récupération d’un signe
+- Analyse de résonance Sujet ↔ Personnage
+- Interprétation narrative (Sobre / Space Opera total)
 
 Dépendances :
     pip install flatlib
@@ -10,9 +17,9 @@ Dépendances :
 from flatlib.chart import Chart
 from flatlib import const
 
-# ==============================================
-# 1. DONNÉES — 12 SIGNES ASTRODYNAMIQUES
-# ==============================================
+# ============================================================
+# 1. BASE DE DONNÉES — 12 SIGNES ASTRODYNA.
+# ============================================================
 
 ASTRO_SIGNS = [
     {
@@ -89,10 +96,9 @@ ASTRO_SIGNS = [
     },
 ]
 
-
-# =====================================================
-# 2. PROFIL NATAL (par défaut, manuel, ou automatique)
-# =====================================================
+# ============================================================
+# 2. PROFIL NATAL PAR DÉFAUT
+# ============================================================
 
 DEFAULT_NATAL = {
     "soleil": "Gémeaux",
@@ -100,8 +106,12 @@ DEFAULT_NATAL = {
     "ascendant": "Sagittaire",
 }
 
+# ============================================================
+# 3. CALCUL AUTOMATIQUE DU THÈME NATAL
+# ============================================================
+
 def compute_birth_chart(date, time, lat, lon):
-    """Calcule Soleil / Lune / Ascendant via Flatlib."""
+    """Calcule Soleil, Lune, Ascendant via Flatlib."""
     chart = Chart(date, time, lat, lon)
     return {
         "soleil": chart.get(const.SUN).sign.capitalize(),
@@ -109,25 +119,22 @@ def compute_birth_chart(date, time, lat, lon):
         "ascendant": chart.get(const.ASC).sign.capitalize(),
     }
 
-
-# =====================================================
-# 3. ACCÈS AUX SIGNES
-# =====================================================
+# ============================================================
+# 4. RÉCUPÉRATION D’UN SIGNE
+# ============================================================
 
 def get_sign_data(sign_name):
-    """Retourne la fiche complète d’un signe."""
     return next(s for s in ASTRO_SIGNS if s["name"] == sign_name)
 
-
-# =====================================================
-# 4. RÉSONANCE SUJET ↔ PERSONNAGE
-# =====================================================
+# ============================================================
+# 5. RÉSONANCE SUJET ↔ PERSONNAGE
+# ============================================================
 
 def compute_resonance(personnage, profil_natal):
-    """Analyse la résonance entre le personnage tiré et le thème natal."""
+    """Analyse détaillée des résonances astrologiques."""
     sun = get_sign_data(profil_natal["soleil"])
     moon = get_sign_data(profil_natal["lune"])
-    asc = get_sign_data(profil_natal["ascendant"])
+    asc  = get_sign_data(profil_natal["ascendant"])
 
     natal_signs = [sun, moon, asc]
 
@@ -137,59 +144,51 @@ def compute_resonance(personnage, profil_natal):
     # Résonance directe
     if personnage["name"] in [s["name"] for s in natal_signs]:
         score += 3
-        notes.append("Résonance directe avec ton Soleil, ta Lune ou ton Ascendant")
+        notes.append("Résonance directe (Soleil, Lune ou Ascendant)")
 
-    # Résonance élémentaire
+    # Éléments
     if personnage["element"] in [s["element"] for s in natal_signs]:
         score += 2
-        notes.append(f"Résonance élémentaire ({personnage['element']})")
+        notes.append(f"Affinité élémentaire ({personnage['element']})")
 
-    # Résonance modale
+    # Modes
     if personnage["mode"] in [s["mode"] for s in natal_signs]:
         score += 1
-        notes.append(f"Résonance modale ({personnage['mode']})")
+        notes.append(f"Harmonie modale ({personnage['mode']})")
 
     # Opposition élémentaire
     oppositions = {"Feu": "Eau", "Eau": "Feu", "Terre": "Air", "Air": "Terre"}
     if oppositions[personnage["element"]] in [s["element"] for s in natal_signs]:
         score -= 1
-        notes.append("Tension élémentaire (activation par contraste)")
+        notes.append("Tension élémentaire (axe opposé)")
 
     return score, notes
 
+# ============================================================
+# 6. INTERPRÉTATION NARRATIVE
+# ============================================================
 
-# =====================================================
-# 5. INTERPRÉTATION SUJET ↔ PERSONNAGE
-# =====================================================
-
-def interpret_character(personnage, profil_natal, mode="Sobre"):
-    """Interprétation narrative selon tonalité."""
+def interpret_character(personnage, profil_natal, mode="Space Opera total"):
     score, notes = compute_resonance(personnage, profil_natal)
 
     if mode == "Sobre":
-        txt = (
-            f"Le personnage du jour est **{personnage['emoji']} {personnage['name']}**.\n\n"
-            f"Résonances avec ton thème natal :\n"
-        )
+        txt = f"Le personnage du jour est **{personnage['emoji']} {personnage['name']}**.\n\n"
+        txt += "Résonances avec ton thème natal :\n"
         for n in notes:
             txt += f"- {n}\n"
-        txt += "\n"
-        txt += (
-            f"Pouvoir activé : **{personnage['pouvoir']}**.\n"
-            f"Fragilité sollicitée : **{personnage['fragilite']}**.\n"
-        )
+        txt += f"\nPouvoir : **{personnage['pouvoir']}**\nFragilité : **{personnage['fragilite']}**"
         return txt
 
-    # Mode Space Opera total
+    # Space Opera total
     txt = (
-        f"Le **{personnage['emoji']} {personnage['name']}** traverse aujourd’hui la scène cosmique intérieure. "
-        "Il projette ses résonances dans les fibres secrètes de ton thème natal :\n\n"
+        f"Le **{personnage['emoji']} {personnage['name']}** traverse la scène quantique de ton Opéra intérieur. "
+        "Les résonances se déploient comme des vecteurs interstellaires :\n\n"
     )
     for n in notes:
         txt += f"- {n}\n"
     txt += "\n"
     txt += (
-        f"L’artefact qu'il t’offre est **{personnage['pouvoir']}**. "
-        f"Dans son ombre danse **{personnage['fragilite']}**, fragment à alchimiser.\n"
+        f"L’artefact activé est **{personnage['pouvoir']}**, "
+        f"tandis que son ombre **{personnage['fragilite']}** murmure les zones à transmuter."
     )
     return txt
