@@ -73,6 +73,51 @@ st.markdown(
         margin-bottom: 0.35rem;
     }
     </style>
+    <style>
+
+@media (max-width: 900px) {
+
+    /* Réduction des titres */
+    .cyber-title {
+        font-size: 1.8rem !important;
+    }
+
+    .cyber-subtitle {
+        font-size: 0.8rem !important;
+    }
+
+    /* Cartes : marges adaptées */
+    .card {
+        padding: 0.8rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    /* Colonnes empilées automatiquement */
+    .block-container {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    /* Scroll horizontal pour large tableaux */
+    .dataframe {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    /* Inputs compactés */
+    input, select, textarea {
+        font-size: 0.9rem !important;
+    }
+
+    /* Réduction des espacements */
+    h3 {
+        font-size: 1.2rem !important;
+    }
+}
+
+</style>
+
     """,
     unsafe_allow_html=True,
 )
